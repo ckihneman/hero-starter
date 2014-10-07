@@ -1,4 +1,4 @@
-/* 
+/*
 
   The only function that is required in this file is the "move" function
 
@@ -9,8 +9,8 @@
 
   The "move" function must return "North", "South", "East", "West", or "Stay"
   (Anything else will be interpreted by the game as "Stay")
-  
-  The "move" function should accept two arguments that the website will be passing in: 
+
+  The "move" function should accept two arguments that the website will be passing in:
     - a "gameData" object which holds all information about the current state
       of the battle
 
@@ -80,30 +80,30 @@
 // };
 
 // // The "Safe Diamond Miner"
-var move = function(gameData, helpers) {
-  var myHero = gameData.activeHero;
+// var move = function(gameData, helpers) {
+//   var myHero = gameData.activeHero;
 
-  //Get stats on the nearest health well
-  var healthWellStats = helpers.findNearestObjectDirectionAndDistance(gameData.board, myHero, function(boardTile) {
-    if (boardTile.type === 'HealthWell') {
-      return true;
-    }
-  });
-  var distanceToHealthWell = healthWellStats.distance;
-  var directionToHealthWell = healthWellStats.direction;
-  
+//   //Get stats on the nearest health well
+//   var healthWellStats = helpers.findNearestObjectDirectionAndDistance(gameData.board, myHero, function(boardTile) {
+//     if (boardTile.type === 'HealthWell') {
+//       return true;
+//     }
+//   });
+//   var distanceToHealthWell = healthWellStats.distance;
+//   var directionToHealthWell = healthWellStats.direction;
 
-  if (myHero.health < 40) {
-    //Heal no matter what if low health
-    return directionToHealthWell;
-  } else if (myHero.health < 100 && distanceToHealthWell === 1) {
-    //Heal if you aren't full health and are close to a health well already
-    return directionToHealthWell;
-  } else {
-    //If healthy, go capture a diamond mine!
-    return helpers.findNearestNonTeamDiamondMine(gameData);
-  }
-};
+
+//   if (myHero.health < 40) {
+//     //Heal no matter what if low health
+//     return directionToHealthWell;
+//   } else if (myHero.health < 100 && distanceToHealthWell === 1) {
+//     //Heal if you aren't full health and are close to a health well already
+//     return directionToHealthWell;
+//   } else {
+//     //If healthy, go capture a diamond mine!
+//     return helpers.findNearestNonTeamDiamondMine(gameData);
+//   }
+// };
 
 // // The "Selfish Diamond Miner"
 // // This hero will attempt to capture diamond mines (even those owned by teammates).
@@ -137,6 +137,84 @@ var move = function(gameData, helpers) {
 // var move = function(gameData, helpers) {
 //   return helpers.findNearestHealthWell(gameData);
 // }
+
+// Get my hero
+var getHero = function( gameData ) {
+  return gameData.activeHero;
+};
+
+var health = {
+  killable : 30,
+  low : 40,
+  weak : 60,
+  strong : 80,
+  max : 100
+};
+
+// My Hero
+var move = function(gameData, helpers) {
+  var me = getHero( gameData );
+
+  var nearHealth = helpers.findNearestHealthWellData( gameData );
+  var nearWeakEnemy = helpers.findNearestWeakerEnemyData( gameData );
+  var nearEnemy = helpers.findNearestEnemyData( gameData );
+  var nearNonTeamMine = helpers.findNearestNonTeamDiamondMineData( gameData );
+  var nearTeamMember = helpers.findNearestTeamMemberData( gameData );
+
+  switch ( true ) {
+
+    // Try to kill nearby people lower than me that I can execute.
+    case (
+        nearEnemy.health < me.health
+          &&
+        nearEnemy.distance < 4
+          &&
+        nearEnemy.health < health.killable
+    ) :
+      return nearEnemy.direction;
+
+    // I'm low on health, go heal.
+    case (
+        me.health < health.low
+    ) :
+      return nearHealth.direction;
+
+    // I'm not full health, but I've got easy health near by, fill up.
+    case (
+        me.health < health.max
+          &&
+        nearHealth.distance === 1
+    ) :
+      return nearHealth.direction;
+
+    // I'm good on health, check for nearby stragglers to kill that are lower than me.
+    case (
+        me.health > health.weak
+          &&
+        nearWeakEnemy.distance < 3
+    ) :
+      return nearWeakEnemy.direction;
+
+    // No one nearby to kill, I'm good on health, look for a nearby non team mine.
+    case (
+        nearNonTeamMine.distance < 4
+    ) :
+      return nearNonTeamMine.direction;
+
+    // Nothing good to do, look for nearby team members to heal.
+    case (
+        nearTeamMember.distance < 4
+    ) :
+      return nearTeamMember.direction;
+
+    // I'm good on health, no stragglers near by, no teammates around, lets go for nearest enemy.
+    case (
+        me.health > strong
+    ) :
+      return helpers.findNearestEnemy( gameData );
+  }
+
+};
 
 
 // Export the move function here
