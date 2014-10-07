@@ -209,7 +209,7 @@ var move = function(gameData, helpers) {
 
     // I'm good on health, no stragglers near by, no teammates around, lets go for nearest enemy.
     case (
-        me.health > strong
+        me.health > health.strong
     ) :
       return helpers.findNearestEnemy( gameData );
   }
