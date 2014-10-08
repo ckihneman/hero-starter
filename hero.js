@@ -164,14 +164,14 @@ var move = function(gameData, helpers) {
   switch ( true ) {
 
     // Try to kill nearby people lower than me that I can execute.
-    case (
-        nearEnemy.health < me.health
-          &&
-        nearEnemy.distance < 4
-          &&
-        nearEnemy.health < health.killable
-    ) :
-      return nearEnemy.direction;
+    // case (
+    //     nearEnemy.health < me.health
+    //       &&
+    //     nearEnemy.distance < 4
+    //       &&
+    //     nearEnemy.health < health.killable
+    // ) :
+    //   return nearEnemy.direction;
 
     // I'm low on health, go heal.
     case (
